@@ -1,0 +1,35 @@
+services:
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+        - 5672:5672
+        - 15672:15672
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 30s
+      retries: 30
+    
+  rabbitmq-producer:
+    image: rabbitmq-test:producer
+    container_name: rabbitmq-producer
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq-consumer:
+    image: rabbitmq-test:consumer
+    container_name: rabbitmq-consumer
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  monitor:
+    image: rabbitmq-test:monitor
+    container_name: monitor
+    environment:
+      - host=rabbitmq:15672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
